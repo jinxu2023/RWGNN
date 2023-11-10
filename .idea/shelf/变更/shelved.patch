@@ -1,0 +1,52 @@
+Index: code/2_code/main/method_main.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/code/2_code/main/method_main.py b/code/2_code/main/method_main.py
+--- a/code/2_code/main/method_main.py	(revision 402)
++++ b/code/2_code/main/method_main.py	(date 1688697852185)
+@@ -34,8 +34,8 @@
+ optimizer = 'rmsprop'
+ loss_mode = 'R'
+ epochs = 200
+-metric_group_idx = 0
+-cv_metric = 'auc5_val'
++metric_group_idx = 1
++cv_metric = 'auc_val'
+ best_per_epoch = False
+ 
+ load_saved_results = False
+Index: code/2_code/common_functions/metrics.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/code/2_code/common_functions/metrics.py b/code/2_code/common_functions/metrics.py
+--- a/code/2_code/common_functions/metrics.py	(revision 402)
++++ b/code/2_code/common_functions/metrics.py	(date 1688633958395)
+@@ -224,6 +224,8 @@
+         for j, cv_flag in enumerate(cv_flags):
+             pred_flt = pred * tf.cast((mask == cv_flag) | (truth == 0), 'float32') \
+                        - (1 - tf.cast((mask == cv_flag) | (truth == 0), 'float32'))
++            ignore_idxs = tf.where(mask != cv_flag)
++            pred_flt = tf.tensor_scatter_nd_update(pred, ignore_idxs, -tf.ones((tf.shape(ignore_idxs)[0],)))
+             truth_flt = truth * tf.cast(mask == cv_flag, 'float32')
+             sorted_idxs = tf.argsort(pred_flt, direction='DESCENDING', axis=1)
+             truth_flt = tf.gather(truth_flt, sorted_idxs, axis=1, batch_dims=1)
+Index: code/2_code/common_functions/rw_profile.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/code/2_code/common_functions/rw_profile.py b/code/2_code/common_functions/rw_profile.py
+--- a/code/2_code/common_functions/rw_profile.py	(revision 402)
++++ b/code/2_code/common_functions/rw_profile.py	(date 1688696016653)
+@@ -1,6 +1,7 @@
+ import tensorflow as tf
+ import numpy as n
+ import os
++import time
+ import scipy.io as scio
+ import scipy.sparse as sp
+ from common_functions.utils import Data
